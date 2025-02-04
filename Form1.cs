@@ -31,7 +31,6 @@ namespace solidFrame
         public string ss2;
         public string ss3;
 
-
         public Form1()
         {
             InitializeComponent();
@@ -44,14 +43,7 @@ namespace solidFrame
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
             OpenFileDialog ofd = new OpenFileDialog();
-            FileDialog fileDialog = null;
-            //ofd.Restorehistory * false;
-            ofd.Multiselect = true;
-            //ofd.ShowDialog();
-
-
             ofd.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm";
             ofd.Multiselect = false;
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -65,39 +57,36 @@ namespace solidFrame
                     {
                         connection.Open();
                         string sheetName = "Sheet1$"; // 修改为你的工作表名称
-                        int row = 1; // 行索引
-                        int col = 1; // 列索引
-                        string cellAddress = GetExcelColumnName(col) + row;
-                        string query = $"SELECT * FROM [{sheetName}{cellAddress}:{cellAddress}]";
+                        string[,] data = new string[4, 4]; // 用于存储4x4表格数据
 
-                        using (OleDbCommand command = new OleDbCommand(query, connection))
+                        for (int row = 1; row <= 4; row++)
                         {
-                            using (OleDbDataReader reader = command.ExecuteReader())
+                            for (int col = 1; col <= 4; col++)
                             {
-                                if (reader.Read())
+                                string cellAddress = GetExcelColumnName(col) + row;
+                                string query = $"SELECT * FROM [{sheetName}{cellAddress}:{cellAddress}]";
+
+                                using (OleDbCommand command = new OleDbCommand(query, connection))
                                 {
-                                    string cellValue = reader[0].ToString();
-                                    MessageBox.Show($"单元格 ({row},{col}) 的值是: {cellValue}");
-                                    Console.WriteLine($"单元格 ({row},{col}) 的值是: {cellValue}");
+                                    using (OleDbDataReader reader = command.ExecuteReader())
+                                    {
+                                        if (reader.Read())
+                                        {
+                                            data[row - 1, col - 1] = reader[0].ToString();
+                                            Console.WriteLine($"单元格 ({row},{col}) 的值是: {data[row - 1, col - 1]}");
+                                        }
+                                    }
                                 }
                             }
                         }
+
+                        // 这里可以对data数组进行进一步处理
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"读取Excel文件时出错: {ex.Message}");
                     }
                 }
-            }
-            //SolidWorks.Interop.swconst.swDocumentTypes_e swDocType = SolidWorks.Interop.swconst.swDocumentTypes_e.swDocPART;
-            int errors = 0;
-            int warnings = 0;
-            ModelDoc2 swModel;
-
-            // 使用 errors 变量以修复 CS0219 错误
-            if (errors == 0)
-            {
-                // 处理没有错误的情况
             }
         }
 
@@ -106,7 +95,6 @@ namespace solidFrame
             int dividend = columnNumber;
             string columnName = String.Empty;
             int modulo;
-            Console.WriteLine("get函数被执行");
             while (dividend > 0)
             {
                 modulo = (dividend - 1) % 26;
