@@ -17,6 +17,7 @@ using FileDialog = System.Windows.Forms.FileDialog;
 using static System.Net.WebRequestMethods;
 using SldWorks;
 using ModelDoc2 = SolidWorks.Interop.sldworks.ModelDoc2;
+using System.Data.OleDb;
 
 
 
@@ -48,14 +49,47 @@ namespace solidFrame
             FileDialog fileDialog = null;
             //ofd.Restorehistory * false;
             ofd.Multiselect = true;
-            ofd.ShowDialog();
-            st = ofd.FileNames;
-            stl = ofd.SafeFileNames;
+            //ofd.ShowDialog();
 
-            ss = System.IO.Path.GetFileName(ofd.FileName);//获取文件名
-            ss2 = System.IO.Path.GetFullPath(ofd.FileName);//获取文件路径
-            // 修复 CS0117 错误
-            SolidWorks.Interop.swconst.swDocumentTypes_e swDocType = SolidWorks.Interop.swconst.swDocumentTypes_e.swDocPART;
+
+            ofd.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm";
+            ofd.Multiselect = false;
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = ofd.FileName;
+                string connectionString = $@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={filePath};Extended Properties='Excel 12.0 Xml;HDR=NO;'";
+
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        string sheetName = "Sheet1$"; // 修改为你的工作表名称
+                        int row = 1; // 行索引
+                        int col = 1; // 列索引
+                        string cellAddress = GetExcelColumnName(col) + row;
+                        string query = $"SELECT * FROM [{sheetName}{cellAddress}:{cellAddress}]";
+
+                        using (OleDbCommand command = new OleDbCommand(query, connection))
+                        {
+                            using (OleDbDataReader reader = command.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    string cellValue = reader[0].ToString();
+                                    MessageBox.Show($"单元格 ({row},{col}) 的值是: {cellValue}");
+                                    Console.WriteLine($"单元格 ({row},{col}) 的值是: {cellValue}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"读取Excel文件时出错: {ex.Message}");
+                    }
+                }
+            }
+            //SolidWorks.Interop.swconst.swDocumentTypes_e swDocType = SolidWorks.Interop.swconst.swDocumentTypes_e.swDocPART;
             int errors = 0;
             int warnings = 0;
             ModelDoc2 swModel;
@@ -67,6 +101,20 @@ namespace solidFrame
             }
         }
 
-    
-}
-}
+        private string GetExcelColumnName(int columnNumber)
+        {
+            int dividend = columnNumber;
+            string columnName = String.Empty;
+            int modulo;
+            Console.WriteLine("get函数被执行");
+            while (dividend > 0)
+            {
+                modulo = (dividend - 1) % 26;
+                columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
+                dividend = (dividend - modulo) / 26;
+            }
+
+            return columnName;
+        }
+    }
+}       
