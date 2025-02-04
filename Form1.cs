@@ -54,7 +54,7 @@ namespace solidFrame
                     try
                     {
                         connection.Open();
-                        string sheetName = "Sheet1$"; // 修改为你的工作表名称
+                        string sheetName = "Sheet1$"; // 工作表名称
                         string[,] data = new string[4, 4]; // 用于存储4x4表格数据
 
                         // 打开一个新的SolidWorks零件文档
@@ -64,23 +64,18 @@ namespace solidFrame
                             MessageBox.Show("无法创建新的SolidWorks文档。");
                             return;
                         }
-
                         swApp.ActivateDoc2("零件1", false, 0);
                         if (swApp.ActiveDoc == null)
                         {
                             MessageBox.Show("无法激活SolidWorks文档。");
                             return;
                         }
-
                         for (int row = 1; row <= 2; row++)
                         {
                             for (int col = 1; col <= 2; col++)
                             {
-                                //if (row == 1 && col == 1) continue; // 跳过第一个正方形
-
                                 string cellAddress = GetExcelColumnName(col) + row;
                                 string query = $"SELECT * FROM [{sheetName}{cellAddress}:{cellAddress}]";
-
                                 using (OleDbCommand command = new OleDbCommand(query, connection))
                                 {
                                     using (OleDbDataReader reader = command.ExecuteReader())
@@ -103,8 +98,6 @@ namespace solidFrame
                                 }
                             }
                         }
-
-                        // 这里可以对data数组进行进一步处理
                     }
                     catch (Exception ex)
                     {
@@ -113,7 +106,6 @@ namespace solidFrame
                 }
             }
         }
-
         public void DrawSquare(int row, int col)
         {
             if (swDoc == null)
@@ -121,16 +113,13 @@ namespace solidFrame
                 MessageBox.Show("swDoc is not initialized.");
                 return;
             }
-
-            double size = 0.01; // 正方形的边长
+            double size = 0.046; // 正方形的边长
             double x = col * size; // 根据列索引确定x坐标
             double y = row * size; // 根据行索引确定y坐标
-
             swDoc.SketchManager.InsertSketch(true);
             swDoc.SketchManager.CreateCornerRectangle(x, y, 0, x + size, y + size, 0);
             //swDoc.SketchManager.InsertSketch(true);
         }
-
         public void ExtrudeRectangle(double length)
         {
             if (swDoc == null)
@@ -139,19 +128,18 @@ namespace solidFrame
                 return;
             }
 
-            if (length == 0)
+            if (length == 0)//拉伸长度为0，不进行拉伸  
             {
                 MessageBox.Show("拉伸长度为0，不进行拉伸。");
                 return;
             }
-
-            bool reverseDirection = length < 0;
+            bool reverseDirection = length < 0;//负值的处理
             length = Math.Abs(length);
 
             FeatureManager featureManager = swDoc.FeatureManager;
             featureManager.FeatureExtrusion2(true, false, reverseDirection, 0, 0, length, 0, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
         }
-        
+
         private string GetExcelColumnName(int columnNumber)// 将Excel列号转换为Excel列名
         {
             int dividend = columnNumber;
@@ -163,28 +151,16 @@ namespace solidFrame
                 columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
                 dividend = (dividend - modulo) / 26;
             }
-
             return columnName;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)//测试按钮
         {
             // 打开一个新的SolidWorks零件文档
             swDoc = (ModelDoc2)swApp.NewDocument(@"E:\gb_part.SLDPRT", 0, 0, 0);
-            if (swDoc == null)
-            {
-                MessageBox.Show("无法创建新的SolidWorks文档。");
-                return;
-            }
-
             swApp.ActivateDoc2("零件1", false, 0);
-            if (swApp.ActiveDoc == null)
-            {
-                MessageBox.Show("无法激活SolidWorks文档。");
-                return;
-            }
 
-            // 绘制一个正方形在第一个位置
+            // 绘制一个正方形
             DrawSquare(1, 1);
             Console.WriteLine("单元格 (1,1) 绘制完成");
 
@@ -193,10 +169,5 @@ namespace solidFrame
             ExtrudeRectangle(cell);
             Console.WriteLine($"矩形已拉伸为实体，长度为: {cell}");
         }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-
-        }
     }
-}       
+}
