@@ -1,24 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using SolidWorks.Interop.swconst;
-using SolidWorks.Interop.sldworks;
-using Microsoft.Win32;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
-using FileDialog = System.Windows.Forms.FileDialog;
-using static System.Net.WebRequestMethods;
-using SldWorks;
 using ModelDoc2 = SolidWorks.Interop.sldworks.ModelDoc2;
 using System.Data.OleDb;
 using FeatureManager = SolidWorks.Interop.sldworks.FeatureManager;
+/// 表中数据最小为-9.40857280866275，故所有数据+10
+
 
 
 namespace solidFrame
@@ -58,7 +45,7 @@ namespace solidFrame
                         string[,] data = new string[4, 4]; // 用于存储表格数据 输入字符串格式不正确，修改此处，
 
                         // 打开一个新的SolidWorks零件文档
-                        swDoc = (ModelDoc2)swApp.NewDocument(@"E:\gb_part.SLDPRT", 0, 0, 0);
+                        swDoc = (ModelDoc2)swApp.NewDocument(@"C:\Users\yersinias\source\repos\wngsisi\solidFrame\gb_part.SLDPRT", 0, 0, 0);//修改此处路径
                         if (swDoc == null)
                         {
                             MessageBox.Show("无法创建新的SolidWorks文档。");
@@ -135,11 +122,11 @@ namespace solidFrame
             {
                 reverseDirection = true;
                 length = -length;
-                return;
-            }
 
-            
-            featureManager.FeatureExtrusion2(true, true , reverseDirection, 0, 0, length, 0, false, false, true , false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
+            }
+                Console.WriteLine($"正在执行拉伸，距离为 ({length},{reverseDirection}) ");
+                return;
+            featureManager.FeatureExtrusion3(true, true , reverseDirection, 0, 0, length, 0, false, false, true , false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
         }
 
         private string GetExcelColumnName(int columnNumber)// 将Excel列号转换为Excel列名
@@ -161,6 +148,16 @@ namespace solidFrame
             // 打开一个新的SolidWorks零件文档
             swDoc = (ModelDoc2)swApp.NewDocument(@"E:\gb_part.SLDPRT", 0, 0, 0);
             swApp.ActivateDoc2("零件1", false, 0);
+            //BodyManager swBodyMgr = (BodyManager)swDoc.GetBodyManager();
+
+            // 定义立方体的尺寸
+            double length = 10.0; // 立方体的边长（单位：mm）
+
+            // 创建立方体
+            //Body2 swBody = swBodyMgr.CreateBox(-length / 2, -length / 2, -length / 2, length / 2, length / 2, length / 2);
+
+            // 将体添加到模型中
+            //swDoc.AddBody(swBody, (int)swAddBodyOptions_e.swAddBodyOptions_Body, null);
 
             // 绘制一个正方形
             DrawSquare(1, 1);
