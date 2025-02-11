@@ -55,24 +55,22 @@ namespace solidFrame
                     {
                         connection.Open();
                         string sheetName = "Sheet1$"; // 工作表名称
-                        string[,] data = new string[4, 4]; // 用于存储表格数据 输入字符串格式不正确，修改此处，
-
+                        // 获取行数和列数
+                        //string countrowQuery = $"SELECT COUNT(*) FROM [{sheetName}]";
+                        //OleDbCommand countCommand = new OleDbCommand(countrowQuery, connection);
+                        //int rowCount = (int)countCommand.ExecuteScalar();
+                        //string counlineQuery = $"SELECT * FROM [{sheetName}]";
+                        //int lineCount = (int)countCommand.ExecuteScalar();
+                        // 创建一个二维数组来存储数据
+                        //Console.WriteLine($"共有 ({rowCount},{lineCount}) ");
+                        //string[,] data = new string[rowCount, lineCount];
+                        string[,] data = new string[870, 870];
                         // 打开一个新的SolidWorks零件文档
                         swDoc = (ModelDoc2)swApp.NewDocument(@"E:\gb_part.SLDPRT", 0, 0, 0);
-                        if (swDoc == null)
-                        {
-                            MessageBox.Show("无法创建新的SolidWorks文档。");
-                            return;
-                        }
                         swApp.ActivateDoc2("零件1", false, 0);
-                        if (swApp.ActiveDoc == null)
+                        for (int row = 1; row <= 870; row++) //索引超出数组界限 修改此处,文档为870*870
                         {
-                            MessageBox.Show("无法激活SolidWorks文档。");
-                            return;
-                        }
-                        for (int row = 1; row <= 4; row++)//索引超出数组界限 修改此处
-                        {
-                            for (int col = 1; col <= 4; col++)
+                            for (int col = 1; col <= 870; col++)
                             {
                                 string cellAddress = GetExcelColumnName(col) + row;
                                 string query = $"SELECT * FROM [{sheetName}{cellAddress}:{cellAddress}]";
@@ -84,22 +82,11 @@ namespace solidFrame
                                         {
                                             data[row - 1, col - 1] = reader[0].ToString();
                                             double cellValue = double.Parse(data[row - 1, col - 1]);
-
-
-                                            if (cellValue == 0)
-                                            {
-                                                // 跳过值为0的单元格
-                                                continue;
-                                            }
-
-                                            Console.WriteLine($"正在绘制单元格 ({row},{col}) 的值是: {cellValue}");
-
                                             // 在SolidWorks中绘制正方形
                                             DrawSquare(row, col);
                                             //Console.WriteLine($"单元格 ({row},{col}) 绘制完成");
-
                                             // 开始拉伸
-                                            cellValue = cellValue * 0.1; // 将单元格值转换为
+                                            cellValue = cellValue * 0.001; // 将单元格值转换为
                                             ExtrudeRectangle(cellValue);
                                             //Console.WriteLine($"单元格 ({row},{col}) 拉伸完成");
                                         }
@@ -118,7 +105,7 @@ namespace solidFrame
 
         public void DrawSquare(int row, int col)
         {
-            double size = 0.46; // 正方形的边长
+            double size = 4.6*0.001; // 正方形的边长
             double x = col * size; // 根据列索引确定x坐标
             double y = row * size; // 根据行索引确定y坐标
             swDoc.SketchManager.InsertSketch(true);
